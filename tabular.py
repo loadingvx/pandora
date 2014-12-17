@@ -38,7 +38,7 @@ class Tabular(object):
                 width += 2
             else:
                 width += 1
-        return width
+        return width+1
 
     def unicode_cnt(self, ustring):
         cnt = 0
@@ -66,8 +66,8 @@ class Tabular(object):
                 continue
             bar+= '+-%s'%('-'*self.col_width[each])
             content += '| %s'%(each.ljust(self.col_width[each]-self.unicode_cnt(each)))
-        bar+= "-+"
-        content += " |"
+        bar+= "+"
+        content += "|"
         print bar
         print content.encode('UTF-8')
         print bar
@@ -86,7 +86,7 @@ class Tabular(object):
                     content += '| %s'%(line[k].ljust(self.col_width[k]-self.unicode_cnt(line[k])))
                 else:
                     content += '| %s'%(''.ljust(self.col_width[k]))
-            content += ' |'
+            content += '|'
             if line_cnt > max_lines and max_lines > 0:
                 print bar
                 print 'top of %d lines'%(max_lines)
@@ -100,6 +100,12 @@ if __name__ == "__main__":
     t = Tabular()
     t.row({        'name':'John',  'age':'28'})
     t.row({'id':2,                 'age':'29'})
+    t.row({'id':1, 'name':'Peter', 'age':'28'})
+    t.row({'id':1, 'name':'Peter', 'age':'28'})
+    t.row({'id':1, 'name':'Peter', 'age':'28'})
+    t.row({'id':1, 'name':'Peter', 'age':'28'})
+    t.row({'id':1, 'name':'Peter', 'age':'28'})
+    t.row({'id':1, 'name':'Peter', 'age':'28'})
     t.row({'id':1, 'name':'Peter', 'age':'28'})
     t.render('id')
 
