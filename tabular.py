@@ -49,16 +49,47 @@ class Tabular(object):
 
 
 
-    def render(self, primary_key='', max_lines=-1):
+
+    def simple_print(self, primary_key='', max_lines=-1):
+        if not primary_key:
+            primary_key = self.col_width.keys()[0]
+        keys = self.col_width.keys()
+        keys.sort()
+
+        header = [primary_key]
+        header.extend([col for col in keys if col != primary_key])
+        print '\t'.join(header)
+
+        line_cnt = 0
+        for line in self.rows:
+            if primary_key in self.col_width:
+                if primary_key in line:
+                    content = '%s\t'%(line[primary_key])
+                else:
+                    content = '\t'
+            for k in keys:
+                if k == primary_key:
+                    continue
+                if k in line:
+                    content += '%s\t'%(line[k])
+                else:
+                    content += '\t'
+            if line_cnt > max_lines and max_lines > 0:
+                print 'top of %d lines'%(max_lines)
+                return
+            line_cnt+= 1
+            print content[:-1].encode('UTF-8')
+
+
+    def show_table_with_border(self, primary_key='', max_lines=-1):
         bar = ''
         content = ''
         if not primary_key:
             primary_key = self.col_width.keys()[0]
-        if primary_key not in self.col_width:
-            print>>sys.stderr, "[WARN] Unknow colume name '%s'"%primary_key
-        else:
-            content = '| %s'%(primary_key.ljust(self.col_width[primary_key]-self.unicode_cnt(primary_key)))
-            bar+= '+-%s'%('-'*self.col_width[primary_key])
+
+        content = '| %s'%(primary_key.ljust(self.col_width[primary_key]-self.unicode_cnt(primary_key)))
+        bar+= '+-%s'%('-'*self.col_width[primary_key])
+
         keys = self.col_width.keys()
         keys.sort()
         for each in keys:
@@ -96,6 +127,18 @@ class Tabular(object):
         print bar
 
 
+
+    def render(self, primary_key='', max_lines=-1, border=True):
+        if border:
+            self.show_table_with_border(primary_key, max_lines)
+        else:
+            self.simple_print(primary_key, max_lines)
+
+
+
+
+
+
 if __name__ == "__main__":
     t = Tabular()
     t.row({        'name':'John',  'age':'28'})
@@ -107,6 +150,7 @@ if __name__ == "__main__":
     t.row({'id':1, 'name':'Peter', 'age':'28'})
     t.row({'id':1, 'name':'Peter', 'age':'28'})
     t.row({'id':1, 'name':'Peter', 'age':'28'})
+    t.render('id', border=False)
     t.render('id')
 
 
