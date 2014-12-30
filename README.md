@@ -62,7 +62,7 @@ While running, you will got a segment fault. try using segment-helper
 	$ gcc segmentfault.c -o crash
 	$ ./crash
 	segmentation fault
-	$ python %s ./crash
+	$ python segment_fault_in_release.py ./crash
 	
 	Programme     : crash[29184]
 	Operation     : user mode / write(0000000000000000) / NoPageFound
