@@ -35,11 +35,11 @@ output:
 
 
 ## [Util] Segment fault helper
-If your binary crashed online, and sadly, you knows nothing of disassamble, you will
-need this python-script to help you get the function in which there is a 'BUG'.
-* Now, segment-helper only get you the function, still not be able to explain why.
-* Only Tested on (Linux 2.6.18-348.16.1.el5 x86_64 GNU/Linux)
-* Hope this will be helpful.
+If your binary(release) crashed online, and sadly, you know nothing of disassamble,
+this python-script will be helpful for you in that case.
+Segment-fault helper will get you a function in which there is a 'BUG'.
+* Segment-helper get you only the function where there is a segment fault.
+* Tested Only on (Linux 2.6.18-348.16.1.el5 x86_64 GNU/Linux)
 
 ```c
 	//segmentfault.c
@@ -56,7 +56,8 @@ need this python-script to help you get the function in which there is a 'BUG'.
 	}
 ```
 
-While running, you will got a segment fault. try using segment-helper
+In practice, you will hit a segment fault with source code given above.
+Try using segment-helper to tell which function contains the bug.
 
 ```sh
 	$ gcc segmentfault.c -o crash
