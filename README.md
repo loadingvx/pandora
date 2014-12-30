@@ -33,4 +33,43 @@ output:
 <pre>
 
 
+##Segment fault helper
+If your binary crashed online, and sadly, you knows nothing of disassamble, you will
+need this python-script to help you get the function in which there is a 'BUG'.
+
+* Now, segment-helper only get you the function, still not be able to explain why.
+* Only Tested on (Linux 2.6.18-348.16.1.el5 x86_64 GNU/Linux)
+* Hope this will be helpful.
+
+```c
+	//segmentfault.c
+	#include <stdlib.h>
+	
+	void logic_function(void) {
+	  char *ptr = 0x00;
+	  *ptr = 'A';
+	}
+	
+	int main(int argc, const char *argv[]) {
+	  logic_function();
+	  return EXIT_SUCCESS;
+	}
+```
+While running, you will got a segment fault. try using segment-helper
+
+```sh
+	$ gcc segmentfault.c -o crash
+	$ ./crash
+	segmentation fault
+	$ python %s ./crash
+
+	Programme     : crash[29184]
+	Operation     : user mode / write(0000000000000000) / NoPageFound
+	Found Match   : [400458:    c6 00 41                movb   $0x41,(%%rax)]
+	See Founction : <logic_function>
+
+    $
+```
+
+
 
