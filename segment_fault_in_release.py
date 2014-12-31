@@ -67,39 +67,97 @@ def operation_at_cause_fault(error_code):
 
 
 ################################################################################
+## perform c++ name demangling
+################################################################################
+def demangling(mangled_name):
+    _, demangled_name = commands.getstatusoutput('c++filt %s' % mangled_name)
+    return demangled_name
+
+################################################################################
+## Add color for shell output
+################################################################################
+def polish(chars, color='auto'):
+    if color == 'always':
+        return '\033[32m%s\033[0m' % (chars)
+    if color == 'auto':
+        _os = __import__('os', fromlist=['isatty'])
+        _sys = __import__('sys', fromlist=['stdout'])
+        if _os.isatty(_sys.stdout.fileno()):
+            return '\033[32m%s\033[0m' % (chars)
+    #if color == 'none':
+    return chars
+
+
+
+################################################################################
+## Add indent for human read
+################################################################################
+def readable(demangled_name, indent=0, tab = '    '):
+    indented_name = []
+    line = []
+    level = 0
+    for c in demangled_name:
+        if c == ')':
+            indented_name.append("%s%s" % (tab*level, ''.join(line)))
+            level -= 1
+            line = []
+        if line or c != ' ':
+            line.append(c)
+        if c == ',' and level == 1:
+            indented_name.append("%s%s" % (tab*level, ''.join(line)))
+            line = []
+            continue
+        if c == '(':
+            indented_name.append("%s%s" % (tab*level, ''.join(line)))
+            line = []
+            level += 1
+            continue
+        if c == '<':
+            level += 1
+            continue
+        if c == '>':
+            level -= 1
+            continue
+    indented_name.append("%s%s" % (tab*level, ''.join(line)))
+    return '\n'.join(['%s%s'%(indent*' ', line) for line in indented_name])
+
+
+################################################################################
 ## Search for BUG which caused segment fault, return the bug-container(function)
 ################################################################################
 def locateError(errmsg, dotTxt):
     re = __import__('re', fromlist=['search'])
-    match = re.search(r'(.+)\[(\d+)\]: segfault at ([\da-fA-F]+) rip ([\da-fA-F]+) rsp ([\da-fA-F]+) error (\d)', errmsg)
+    match = re.search(r'(.+)\[(\d+)\]: segfault at ([\da-fA-F]+) rip '\
+                      r'([\da-fA-F]+) rsp ([\da-fA-F]+) error (\d)', errmsg)
 
     if match:
         programme, pid, invalidAddr, source_code, _stack, error = match.groups()
         explain = operation_at_cause_fault(error)
-        print "Programme     : %s[%s]\n"\
-              "Operation     : %s"\
+        print "Programme          : %s[%s]\n"\
+              "Operation          : %s"\
               % (
                 programme,
                 pid,
-                '%s mode / %s(%s) / %s' % (
+                polish('%s mode / %s(%s) / %s' % (
                     'user'  if explain['user']  else 'kernel',
                     'write' if explain['write'] else 'read',
                     invalidAddr,
                     'NoPermission'  if explain['permit']  else 'NoPageFound'
-                    ),
+                    )),
               )
         page, offset = source_code[-6:-3], source_code[-3:]
         shortAdd = page+offset
         bugs = []
         for k in xrange(len(dotTxt)):
             if shortAdd in dotTxt[k]:
-                print "Found Match   : [%s]" % dotTxt[k].strip()
+                print "Found Match        : [%s]" % dotTxt[k].strip().split('\t')[2]
                 for dec in xrange(k, 0, -1):
                     if not dotTxt[dec].startswith(' '):
-                        func_name = re.search(r'<(.*)>', dotTxt[dec][:-1]).groups()[0]
-                        print "C++ Founction : %s" % func_name
-                        error, func_declear_name = commands.getstatusoutput('c++filt %s'%func_name)
-                        print "Founction_msg : %s" % func_declear_name
+                        mangled_name = re.search(r'<(.*)>', dotTxt[dec][:-1]).group(0)
+                        print "Mangled Founction  : %s" % mangled_name
+                        print "Demangled Function : %s" % polish(
+                                        readable(demangling(mangled_name[1:-1]))
+                              )
                         return
     del re
 
