@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 #encoding:utf-8
 
+import commands
 
 HELP = '''
  When your application crash with a segment fault, tell me where is your application,
@@ -37,28 +38,20 @@ Usage:
 '''%(__file__, __file__)
 
 
+
 ################################################################################
 ## perform dmesg and objdump
 ################################################################################
 def dmesg_and_objdump(application):
     app_name = application.split('/')[-1][:15]
-    try:
-        shell = __import__('commands', fromlist=['getstatusoutput'])
-        error, output = shell.getstatusoutput("dmesg | tac")
-        errmsg = None
-        for line in output.split('\n'):
-            if line.startswith(app_name):
-                errmsg = line.strip()
-                break
-
-        #objdump
-        error, dottxt_asm   = shell.getstatusoutput('objdump -d -S %s' % application)
-
-        del shell
-        return errmsg, dottxt_asm.split('\n')
-    except ImportError:
-        print "Error Accour : 'from commands import getstatusoutput as shell'"
-        raise ABORT
+    error, output = commands.getstatusoutput("dmesg | tac")
+    errmsg = None
+    for line in output.split('\n'):
+        if line.startswith(app_name):
+            errmsg = line.strip()
+            break
+    error, dottxt_asm   = commands.getstatusoutput('objdump -d -S %s' % application)
+    return errmsg, dottxt_asm.split('\n')
 
 
 ################################################################################
@@ -103,10 +96,12 @@ def locateError(errmsg, dotTxt):
                 print "Found Match   : [%s]" % dotTxt[k].strip()
                 for dec in xrange(k, 0, -1):
                     if not dotTxt[dec].startswith(' '):
-                        print "See Founction : %s" % re.search(r'<(.*)>', dotTxt[dec][:-1]).group(0)
+                        func_name = re.search(r'<(.*)>', dotTxt[dec][:-1]).groups()[0]
+                        print "C++ Founction : %s" % func_name
+                        error, func_declear_name = commands.getstatusoutput('c++filt %s'%func_name)
+                        print "Founction_msg : %s" % func_declear_name
                         return
     del re
-
 
 
 
