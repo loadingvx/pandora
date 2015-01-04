@@ -70,7 +70,7 @@ def operation_at_cause_fault(error_code):
 ## perform c++ name demangling
 ################################################################################
 def demangling(mangled_name):
-    _, demangled_name = commands.getstatusoutput('c++filt %s' % mangled_name)
+    _, demangled_name = commands.getstatusoutput('c++filt -i %s' % mangled_name)
     return demangled_name
 
 ################################################################################
