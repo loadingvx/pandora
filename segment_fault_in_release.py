@@ -47,7 +47,7 @@ def dmesg_and_objdump(application):
     error, output = commands.getstatusoutput("dmesg | tac")
     errmsg = None
     for line in output.split('\n'):
-        if line.startswith(app_name):
+        if app_name in line:
             errmsg = line.strip()
             break
     error, dottxt_asm   = commands.getstatusoutput('objdump -d -S %s' % application)
